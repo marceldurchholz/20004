@@ -155,7 +155,6 @@ define(["jquery", "backbone", "text!templates/CardEditNestedPage.html", "text!te
 					$( ".sortableListe" ).disableSelection();
 				// this.$el.off('click','.clickRow').on('click','.clickRow',function(){_thisViewLearningStreamNested.clicked(e);});
 				
-				// $(document).on('pageshow', '#index', function(){ 
 				_thisViewCardEditNested.$el.off('click','#setUsergroupsBtn').on('click','#setUsergroupsBtn',function(e){
 					e.preventDefault();
 					// showModal();
@@ -194,7 +193,7 @@ define(["jquery", "backbone", "text!templates/CardEditNestedPage.html", "text!te
 					*/
 					// hideModal();
 					el.popup( "open", {transition: 'fade'} );
-				});    
+				});
 				
 				$('#body').off('change','.usergroupcb').on('change','.usergroupcb',function(e) { 
 				// _thisViewCardEditNested.$el.off('change','.usergroupcb').on('change','.usergroupcb',function(e){

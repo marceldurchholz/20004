@@ -2381,6 +2381,25 @@ try {
 		});
 	});
 
+	/*
+	$('body').off('click','#captureVideoLinkButton').on('click','#captureVideoLinkButton',function(e) { 
+		e.preventDefault();
+		// $('#linkVideoUrl').val('bla');
+		var videoLink = $('#linkVideoUrl').val();
+		var popupid = 'popupBasic';
+		// var el = $( "#"+popupid );
+		var activepage = $('#popupBasic-popup');
+		var el = activepage.find('#popupBasic');
+		console.log(el);
+		el.popup( "close" );
+		$('#body').find('#popupBasic').each(function() {
+			console.log($(this));
+			$(this).remove();
+		});
+		// $('#popupBasic').remove();
+	});
+	*/
+	
 	$('body').off('click','#closewelcomepopupbtn').on('click','#closewelcomepopupbtn',function(e) { 
 		e.preventDefault();
 		setTimeout(function() {
