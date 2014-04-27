@@ -64,8 +64,8 @@ define(["jquery", "backbone", "text!templates/AdminUserDetailsNestedPage.html"],
 				});
 				*/
 				
-				var requestUrl = "http://dominik-lohmann.de:5000/usergroups/";
-				if (window.system.master!=true) requestUrl = requestUrl + "?owner="+_thisViewAdminUserDetailsNested.me.id;
+				var requestUrl = "http://dominik-lohmann.de:5000/usergroups/?deleted=false";
+				if (window.system.master!=true) requestUrl = requestUrl + "&owner="+_thisViewAdminUserDetailsNested.me.id;
 				$.ajax({
 					url: requestUrl,
 					async: false
@@ -83,10 +83,40 @@ define(["jquery", "backbone", "text!templates/AdminUserDetailsNestedPage.html"],
 				
 				_thisViewAdminUserDetailsNested.render();
 			},
+			deleteUsergroup: function(_thisEl,usergroupid) {
+				showModal();
+				// alert('deleting now: '+usergroupid);
+				dpd.usergroups.put(usergroupid, {"deleted":true}, function(result, err) {
+					if(err) return console.log(err);
+					// console.log(result, result.id);
+					_thisEl.remove();
+					hideModal();
+				});
+			},
 			bindEvents: function() {
 				_thisViewAdminUserDetailsNested = this;
 				$('#delaccuntarea').hide();
-				
+
+				// swipeleft
+				_thisViewAdminUserDetailsNested.$el.off( "click", ".swipetodeletetd").on( "click", ".swipetodeletetd", function( e ) {
+					e.preventDefault();
+					var usergroupid = $(this).attr('data-usergroupid');
+					var _thisEl = $(this);
+					doConfirm('Möchten Sie diese Gruppe wirklich löschen?', 'Wirklich löschen?', function (clickevent) { 
+						if (clickevent=="1") {
+							_thisViewAdminUserDetailsNested.deleteUsergroup(_thisEl,usergroupid);
+							/*
+							$.when( deleteFlowClicked() ).done(
+								function( result ) {
+									// console.log('end deleteFlowClicked');
+								}
+							);
+							*/
+						}
+					}, "Ja,Nein");
+					// alert('peng');
+				});
+
 				_thisViewAdminUserDetailsNested.$el.off('change','.usergroupcb').on('change','.usergroupcb',function(e){
 					e.preventDefault();
 					var userid = $(this).attr('data-userid');
@@ -120,7 +150,7 @@ define(["jquery", "backbone", "text!templates/AdminUserDetailsNestedPage.html"],
 						doAlert('Bitte geben die Bezeichnung der neuen Gruppe ein.','Bitte Bezeichnung eingeben');
 						return(false);
 					}
-					dpd.usergroups.post({"owner":_thisViewAdminUserDetailsNested.me.id,"name":usergroupname}, function(result, err) {
+					dpd.usergroups.post({"deleted":false,"owner":_thisViewAdminUserDetailsNested.me.id,"name":usergroupname}, function(result, err) {
 						if(err) return console.log(err);
 						// console.log(result, result.id);
 						var usergroupid = result.id;
