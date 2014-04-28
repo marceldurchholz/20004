@@ -2352,8 +2352,14 @@ try {
 		}
 	};
 
+	function clearIntervals() {
+		if (window._thisViewCardStart) {
+			_thisViewCardStart.answerCountdownLoopStop();
+			_thisViewCardStart.answerCountdownButtonDelayStop();
+		}
+	}
+	
 	function bindSwipeBack() {
-		// alert('bindSwipeBack');
 		$('#body').off( "swiperight", "#page-content").on( "swiperight", "#page-content", function( e ) {
 			e.preventDefault();
 			// alert('swiped on body');
@@ -2361,6 +2367,7 @@ try {
 			return(false);
 		});
 	}
+	bindSwipeBack();
 
 	window.addEventListener('load', function () {
 		new FastClick(document.body);
@@ -2372,6 +2379,7 @@ try {
 		checkTopNaviAppConfig();
 		// checkTopNaviRoles();
 		bindSwipeBack();
+		clearIntervals();
 		showDeleteBar(false);
 		$("#flexiblecontent").animate({
 			marginLeft: "0px",
@@ -2593,9 +2601,6 @@ try {
 		showDeleteBar(false);
 	}
 	
-	
-	
-	bindSwipeBack();
 	$('body').off( "click", ".messagesendbutton").on( "click", ".messagesendbutton", function( e ) {
 		e.preventDefault();
 		// alert('bla');
