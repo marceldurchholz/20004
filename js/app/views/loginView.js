@@ -28,7 +28,7 @@ define(["jquery", "backbone", "text!templates/sidemenusList.html", "views/Sideme
 						// 16181348537294980
 						// console.log(username);
 						$.ajax({
-							url: 'http://dominik-lohmann.de:5000/users/?username='+username,
+							url: 'http://s299455960.online.de:5000/users/?username='+username,
 							async: false,
 							success: function(response, textStatus, XMLHttpRequest) {
 								// console.log(response);
@@ -104,7 +104,7 @@ define(["jquery", "backbone", "text!templates/sidemenusList.html", "views/Sideme
 							var registered = dateYmdHis();
 							/*
 							$.ajax({
-								url: 'http://dominik-lohmann.de:5000/users/'+window.system.aoid,
+								url: 'http://s299455960.online.de:5000/users/'+window.system.aoid,
 								async: false,
 								success: function(sponsor, textStatus, XMLHttpRequest){
 									// _thisViewLogin.ownerdata = ownerdata[0];
@@ -201,15 +201,9 @@ define(["jquery", "backbone", "text!templates/sidemenusList.html", "views/Sideme
 					_thisViewLogin.$el.html(_.template(loginPage, {}));
 					// window.createVideoPreview(_thisViewLogin.$('#video_player_1'),'video_player_1',"promo",0);
 					this.$el.trigger('create');
-					$( ".dynspace_small" ).each(function(index, value) {
-						var nowheight = $(this).height();
-						// alert(nowheight);
-						var thenheight = $(this).height()*$(window).height()*1/100;
-						// alert(thenheight);
-						$(this).css('height',thenheight);
-					});
-					hideModal();
 					fontResize();
+					resizeDynSpaces();
+					hideModal();
 					this.$el.fadeIn( 500, function() {
 						if (window.system.showtutorial == true) {
 							// alert('now show the tutorial');

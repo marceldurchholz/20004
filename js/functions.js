@@ -7,6 +7,8 @@ try {
 	var deviceSDID = "???";
 	var SDID_DOMAIN = 'phonegap.appinaut.de';  
 	var SDID_KEY = '633241';
+	var PhoneGap = false;
+	var phonegap = false;
 
 	var my_media;
 	var platformId = null;
@@ -47,8 +49,11 @@ try {
 		Windows: function() {
 			return navigator.userAgent.match(/IEMobile/i) ? true : false;
 		},
+		iPhone: function() {
+			return ((navigator.platform.indexOf("iPhone") != -1) || (navigator.platform.indexOf("iPod") != -1) || (navigator.platform.indexOf("iPad") != -1) ) ? true : false;
+		},
 		any: function() {
-			return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Windows());
+			return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Windows() || isMobile.iPhone());
 		}
 	};
 
@@ -563,9 +568,42 @@ try {
 		}
 	};
 
+	function getCoinsFromProductId(productId) {
+		var addcredits = "0";
+		switch (productId) {
+		  case "com.digitalverve.APPinaut.250APP359T4":
+			addcredits = "250";
+			break;
+		  case "com.digitalverve.APPinaut.750APP799T9":
+			addcredits = "750";
+			break;
+		  case "com.digitalverve.APPinaut.2500APP2499T28":
+			addcredits = "2500";
+			break;
+		  case "com.digitalverve.APPinaut.6500APP4999T51":
+			addcredits = "6500";
+			break;
+		  case "com.digitalverve.APPinaut.16000APP9999T60":
+			addcredits = "16000";
+			break;
+		  case "com.digitalverve.APPinaut.25000APP17999T72":
+			addcredits = "25000";
+			break;
+		  case "com.digitalverve.APPinaut.UPGPROVAPP269T3":
+			addcredits = "0";
+			break;
+		  case "com.digitalverve.APPinaut.UPGPROVAPP1999T22":
+			addcredits = "0";
+			break;
+		  default:
+			break;
+		}
+		return(addcredits);
+	}
+	
 	function updateCoins(productId) {
 		// showModal();
-		$.ajax('http://dominik-lohmann.de:5000/users/?id='+window.me.id,{
+		$.ajax('http://s299455960.online.de:5000/users/?id='+window.me.id,{
 			type:"GET",
 			async: false,
 		}).done(function(me) {
@@ -658,7 +696,7 @@ try {
 			debug: true, /* Because we like to see logs on the console */
 			noAutoFinish: true,
 			purchase: function (transactionId, productId) {
-				// showModal();
+				showModal();
 				// alert('start purchasing');
 				storekit.finish(transactionId);
 				storekit.loadReceipts(function (receipts) {
@@ -715,9 +753,9 @@ try {
 	}
 
 	function isPhoneGap() {
-		// return (cordova || PhoneGap || phonegap) && /^file:\/{3}[^\/]/i.test(window.location.href) && /ios|iphone|ipod|ipad|android/i.test(navigator.userAgent);
+		return (cordovaIsLoaded || PhoneGap || phonegap) && /^file:\/{3}[^\/]/i.test(window.location.href) && /ios|iphone|ipod|ipad|android/i.test(navigator.userAgent);
 		// return /^file:\/{3}[^\/]/i.test(window.location.href) && /ios|iphone|ipod|ipad|android/i.test(navigator.userAgent);
-		return /^file:\/{3}[^\/]/i.test(window.location.href) && /iphone|ipod|ipad/i.test(navigator.userAgent);
+		// return /^file:\/{3}[^\/]/i.test(window.location.href) && /iphone|ipod|ipad/i.test(navigator.userAgent);
 	}
 
 	function checkFileExists(fileName){
@@ -1738,46 +1776,27 @@ try {
 		var creditsAfterPurchase = parseFloat(me.credits) - parseFloat(videoData.price);
 		this._videoData = videoData;
 		this._creditsAfterPurchase = creditsAfterPurchase;
-		// console.log(creditsAfterPurchase,'creditsAfterPurchase');
-		// return(false);
-		// alert('Video ' + videoData.id + ' wird über User ID ' + me.id + 'gekauft. Sie haben nun '+creditsAfterPurchase+' Credits.');
 		var data = new Object();
 		data.credits = ''+creditsAfterPurchase;
 		data.purchases = me.purchases;
 		this._newData = data;
-		// console.log(_newData.purchases);
-		
 		this._me = me;
-		$.ajax('http://dominik-lohmann.de:5000/users/?id='+me.id,{
+		$.ajax('http://s299455960.online.de:5000/users/?id='+me.id,{
 			type:"GET",
 			async: false,
 		}).done(function(me) {
-			// doAlert( "DONE!" );
 			_me = me;
 			if (_me.purchases==undefined) _me.purchases = new Array();
-			// console.log('_me.purchases actual');
-			// console.log(_me.purchases);
-		}).fail(function() {
-			doAlert( "Es ist leider ein Fehler passiert, der nicht passieren sollte.", "Entschuldigung..." );
-		})
+		}).fail(function() { doAlert( "Es ist leider ein Fehler passiert, der nicht passieren sollte.", "Entschuldigung..." ); })
 		.always(function() {
-			// alert( "finished - nw redirecting" );
 		});
-		if ($.inArray(videoData.id, _me.purchases) >= 0) {
-			// Do your stuff.
+		if ($.inArray(videoData.id, _me.purchases) > -1) {
 			doAlert('Sie haben dieses Video bereits gekauft.','Information');
 		}
 		else {
 			if (_me.purchases==undefined) _me.purchases = new Array();
-			// console.log(me.purchases);
-			// me.push( videoData.id );
-			// var el = new Object();
-			// el.value = videoData.id;
 			me.purchases.push(videoData.id);
-			// var videoData = videoData;
-			// console.log(me.purchases);
-			// return(false);
-			$.ajax('http://dominik-lohmann.de:5000/users/?id='+me.id,{
+			$.ajax('http://s299455960.online.de:5000/users/?id='+me.id,{
 				type:"POST",
 				contentType: "application/json",
 				async: false,
@@ -1786,7 +1805,6 @@ try {
 					credits: creditsAfterPurchase
 				}),
 			}).done(function(uploaderdata) {
-				// doAlert( "Das Video wurde gekauft." );
 				var alertmsg = 'Sie können das Video nun vollständig ansehen.';
 				if (_videoData.price>0) alertmsg += ' Für weitere Käufe sind noch '+creditsAfterPurchase+' Credits verfügbar.';
 				doAlert(alertmsg,'Information');
@@ -1803,26 +1821,26 @@ try {
 	}
 
 	function addFollower(me, toid) {
-		// var query = {id:toid,$or:[{"sponsor":me.id},{"followers":me.id}],$sort:{fullname:1}};
-		var query = {  followers: {$in: [me.id]}, id:toid };
+		var query = { followers: {$in: [me.id]}, id:toid };
 		dpd.users.get(query, function (result,err) {
 			if(err) dpd.users.put(toid, {"followers": {$push:$.trim(me.id)}} );
 		});
-		var query = {  following: {$in: [toid]}, id:me.id };
+		var query = { following: {$in: [toid]}, id:me.id };
 		dpd.users.get(query, function (result,err) {
 			if(err) dpd.users.put(me.id, {"following": {$push:$.trim(toid)}} );
 		});
 	}
 
 	function addVideoReport(me, videoid) {
-		var query = {  reportedby: {$in: [me.id]}, id:videoid };
+		var query = { reportedby: {$in: [me.id]}, id:videoid };
 		dpd.videos.get(query, function (result,err) {
 			if(err) dpd.videos.put(videoid, {"reportedby": {$push:$.trim(me.id)}} );
 		});
 	}
 
 	function addOrder(me,videoid,creatorid,price) {
-		dpd.orders.post({"userid":""+me.id,"videoid":""+videoid,"creatorid":""+creatorid,"price":""+price}, function(result, err) {
+		var cdate = dateYmdHis();
+		dpd.orders.post({"userid":""+me.id,"videoid":""+videoid,"cdate":""+cdate,"creatorid":""+creatorid,"price":""+price}, function(result, err) {
 			if(err) return console.log(err);
 		});
 	}
@@ -1967,6 +1985,13 @@ try {
 				formValues[modelkey] = modelsattribute[modelkey];
 			}
 		}
+		var flipactivate = false;
+		if (formValues.flipactivate=="on") flipactivate=true;
+		var flippublic = false;
+		if (formValues.flippublic=="on") flippublic=true;
+		// alert("active"+flipactivate);
+		// alert("public"+flippublic);
+		// alert({"vsize":Math.ceil(r.bytesSent).toString(),"vlength":window.system.videolength.toString(),"uploader":""+_this._thisViewRecordVideoNested.me.id,"videourl":""+options.fileName,"active":flipactivate,"public":flippublic,"cdate":""+dateYmdHis(),"topic":""+formValues.interest,"title":""+formValues.title,"subtitle":""+formValues.subtitle,"description":""+formValues.description,"price":formValues.sliderprice});
 		var mediaFile = formValues.camera_file;
 		try {
 			showModal();
@@ -1991,22 +2016,15 @@ try {
 					// console.log("Sent = " + r.bytesSent);
 					// alert(r.bytesSent);
 					// dpd.videos.post({"vsize":Math.ceil(r.bytesSent).toString(),"vlength":window.system.videolength.toString(),"uploader":""+_this._thisViewRecordVideoNested.me.id,"videourl":""+options.fileName,"active":true,"cdate":""+dateYmdHis(),"topic":""+formValues.interest,"title":""+formValues.title,"subtitle":""+formValues.subtitle,"description":""+formValues.description,"price":formValues.sliderprice}, function(result, err) {
-					dpd.videos.post({"vsize":Math.ceil(r.bytesSent).toString(),"vlength":window.system.videolength.toString(),"uploader":""+_this._thisViewRecordVideoNested.me.id,"videourl":""+options.fileName,"active":formValues.flipactivate,"cdate":""+dateYmdHis(),"topic":""+formValues.interest,"title":""+formValues.title,"subtitle":""+formValues.subtitle,"description":""+formValues.description,"price":formValues.sliderprice}, function(result, err) {
+					dpd.videos.post({"vsize":Math.ceil(r.bytesSent).toString(),"vlength":window.system.videolength.toString(),"uploader":""+_this._thisViewRecordVideoNested.me.id,"videourl":""+options.fileName,"active":formValues.flipactivate,"public":formValues.flippublic,"cdate":""+dateYmdHis(),"topic":""+formValues.interest,"title":""+formValues.title,"subtitle":""+formValues.subtitle,"description":""+formValues.description,"price":formValues.sliderprice}, function(result, err) {
 						if(err) {
 							hideModal();
 							// doAlert('Es ist ein Fehler passiert, der nicht passieren sollte. Bitte versuchen Sie Ihre Aktion erneut oder wenden Sie sich direkt an das APPinaut Support Team.','Ups! Fehler beim Upload!');
 							return console.log(err);
 						}
-						// if (result) {
-							hideModal();
-							/*
-							if (formValues.flipactivate==false) {
-								doAlert('Nach Freigabe wird Ihr Video allen Wissensdurstigen angezeigt.','Upload erfolgreich!');
-							}
-							*/
-							// system.redirectToUrl('#learningstreamview');
-							window.location.href = '#learningstreamview';
-						// }
+						hideModal();
+						// window.location.href = '#learningstreamview';
+						window.location.href = '#videos/details/view/'+result.id;
 					});
 				},
 				function(error) {
@@ -2174,6 +2192,105 @@ try {
 
 	//* DEBUG */ window.console.log('js/global.js loaded...');
 
+	/**
+	 * parses and returns URI query parameters 
+	 * 
+	 * @param {string} param parm
+	 * @param {bool?} asArray if true, returns an array instead of a scalar 
+	 * @returns {Object|Array} 
+	 */
+	function getURIParameter(param, asArray) {
+		return document.location.search.substring(1).split('&').reduce(function(p,c) {
+			var parts = c.split('=', 2).map(function(param) { return decodeURIComponent(param); });
+			if(parts.length == 0 || parts[0] != param) return (p instanceof Array) && !asArray ? null : p;
+			return asArray ? p.concat(parts.concat(true)[1]) : parts.concat(true)[1];
+		}, []);
+	}
+
+	function getTokens(val){
+		var tokens = [];
+		var query = "";
+		var a = new Array();
+		a = val.split("?");
+		if (a[1]!=undefined) {
+			query = a[1].split('&');
+			$.each(query, function(i,value){    
+				var token = value.split('=');   
+				var key = decodeURIComponent(token[0]);     
+				var data = decodeURIComponent(token[1]);
+				tokens[key] = data;
+			});
+		}
+		return tokens;
+	}
+	function checkYoutubeUrl(val) {
+		var rval = new Object();
+		rval.isyoutube = false;
+		var tokens = getTokens(val);
+		// console.log(tokens);
+		if (tokens.v!=undefined && tokens.v!="") {
+			rval.isyoutube = true;
+			rval.youtubeid = tokens.v;
+		}
+		else {
+			rval = checkYoutubeEmbedUrl(val);
+		}
+		return rval;
+	}
+	function checkYoutubeEmbedUrl(val) {
+		var rval = new Object();
+		rval.isyoutube = false;
+		var folders = val.split('/');
+		var youtubeid = "";
+		// console.log('folders');
+		// console.log(folders);
+		$.each(folders, function(i,value){
+			value = value.split("?")[0];
+			if (value=="embed" && folders[i+1].split("?")[0]!=undefined) {
+				youtubeid = folders[i+1].split("?")[0];
+				// alert(youtubeid);
+				rval.isyoutube = true;
+				rval.youtubeid = youtubeid;
+				return(rval);
+			}
+			// var token = value.split('=');   
+			// var key = decodeURIComponent(token[0]);     
+			// var data = decodeURIComponent(token[1]);
+			// tokens[key] = data;
+			// console.log(value);
+		});
+		/*
+		if (tokens.v!=undefined && tokens.v!="") {
+			rval.isyoutube = true;
+			rval.youtubeid = tokens.v;
+		}
+		else {
+			//  und nu... nix...
+		}
+		*/
+		return rval;
+	}
+	
+	function getQueryParams(qs) {
+		qs = qs.split("+").join(" ");
+		var params = {}, tokens, re = /[?&]?([^=]+)=([^&]*)/g;
+		while (tokens = re.exec(qs)) {
+			params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+		}
+		return params;
+	}
+
+	function resizeWideScreen(elementid) {
+		// var elwidth = $(elementid).width();
+		var elwidth = $(window).width();
+		var elheight = elwidth/10*16;
+		var maxheight = $(window).height() / 3;
+		// var newheightwfactor = (window_width)*elfactor;
+		if (elheight>maxheight) elheight = maxheight;
+		$(elementid).css("width", elwidth);
+		$(elementid).css("height", elheight);
+	}
+	
 	function resizeElement(elementid) {
 		// console.log('resizeElement: '+elementid);
 		// var thumbnail_width = this.$el.outerWidth();
@@ -2534,19 +2651,6 @@ try {
 		}, "Ja,Nein");
 	});
 	
-	/*
-	$('abody').off( "swipeleft", ".swipeToDelete").on( "swipeleft", ".swipeToDelete", function( e ) {
-		e.preventDefault();
-		// alert('swiped on element');
-		var listitem = $(this);
-		doConfirm('Der Eintrag kann nicht wiederhergestellt werden!', 'Wirklich löschen?', function (clickevent) { 
-			if (clickevent=="1") {
-				deleteFlowClicked(listitem);
-			}
-		}, "Ja,Nein");
-	});
-	*/
-	
 	function deleteFlowClicked() {
 		deleteMessageFlow();
 	}
@@ -2603,15 +2707,11 @@ try {
 	
 	$('body').off( "click", ".messagesendbutton").on( "click", ".messagesendbutton", function( e ) {
 		e.preventDefault();
-		// alert('bla');
 		$("#newmessageform").submit();
 	});
 
 	$('body').off( "submit", ".newmessageform").on( "submit", ".newmessageform", function( e ) {
 		e.preventDefault();
-		// alert('foo');
-		// var data = $('.newmessageform').serialize();
-		// console.log(data);
 		if($('#messagetextarea').val().length==0) return(false);
 		var sender = window.me.id;
 		var receiver = $('#receiver').val();
@@ -2620,18 +2720,9 @@ try {
 			return(false);
 		}
 		var content = $('#messagetextarea').val();
-		// console.log(sender);
-		// console.log(receiver);
-		// console.log(content);
-		// var cdate = dateYmdHis();
-		// alert(getTimestamp());
 		$('.newmessageform').css({'opacity':'0.6'});
 		$('#messagesendbutton').addClass( 'ui-disabled' );
 		$('#messagetextarea').addClass( 'ui-disabled' );
-		// alert(sender);
-		// alert(receiver);
-		// alert(content);
-		// alert(system.timestamp);
 		var postvals = {sender: sender, receiver: receiver, content: content, cdate: system.timestamp};
 		dpd.messages.post(postvals, function(result, err) {
 			if(err) {
@@ -2652,19 +2743,6 @@ try {
 		return(false);
 	});
 	
-	/*
-	$('#page-content').scroll(function () {
-		$('.newmessageform').each(function () {
-			// $(this).height();
-			// $(this).css({'position':'fixed'});
-			$(this).css({'bottom':'0px'});
-			// $(this).css({'opacity':'0.7'});
-		});
-	});
-	*/
-	
-	// resize:false;height: 40px !important;
-
 	function checkTextareaValue() {
 		// console.log($('#messagetextarea').val().length);
 		if ($('#messagetextarea').val() && $('#messagetextarea').val().length > 0) {
@@ -2690,6 +2768,51 @@ try {
 		return(false);
 	});
 	
+		$('#body').off('slidestop','#sliderprice').on('slidestop','#sliderprice',function(event){
+			var id = $('#sliderprice').attr('data-id');
+			if (id!=undefined) {
+				showModal();
+				var priceincoins = $('#sliderprice').val();
+				$('#priceincoins').html(priceincoins);
+				var dbtable = "";
+				var dbtype = $('#sliderprice').attr('data-dbtype');
+				// console.log(dbtype);
+				// return(false);
+				if(dbtype=="video") dbtable="videos";
+				if(dbtype=="card") dbtable="cards";
+				$.ajax('http://s299455960.online.de:5000/'+dbtable+'/?id='+id,{
+					type:"POST",
+					contentType: "application/json",
+					async: false,
+					data: JSON.stringify({price: priceincoins}),
+				}).done(function(result) {
+					var priceineuro = ((Math.ceil(priceincoins*0.0055*100))/100).toString().replace(".", ",");
+					if (priceineuro.split(",")[1]==undefined) priceineuro = priceineuro + ",00";
+					else if (priceineuro.split(",")[1].length==0) priceineuro = priceineuro + "00";
+					else if (priceineuro.split(",")[1].length==1) priceineuro = priceineuro + "0";
+					$('#priceineuro').html(priceineuro);
+				}).fail(function() {
+					console.log( "Es ist leider ein Fehler passiert, der nicht passieren sollte.", "Entschuldigung..." );
+					return(false);
+				})
+				.always(function() {
+					hideModal();
+				});
+			}
+		});
+
+		$('#body').off('change','#sliderprice').on('change','#sliderprice',function(event){
+			// console.log(event);
+			var id = $('#sliderprice').attr('data-id');
+			var priceincoins = $('#sliderprice').val();
+			$('#priceincoins').html(priceincoins);
+			var priceineuro = ((Math.ceil(priceincoins*0.0055*100))/100).toString().replace(".", ",");
+			if (priceineuro.split(",")[1]==undefined) priceineuro = priceineuro + ",00";
+			else if (priceineuro.split(",")[1].length==0) priceineuro = priceineuro + "00";
+			else if (priceineuro.split(",")[1].length==1) priceineuro = priceineuro + "0";
+			$('#priceineuro').html(priceineuro);
+		});
+
 	$('#body').off('change','.publiccb').on('change','.publiccb',function(e) { 
 		e.preventDefault();
 		var id = $(this).attr('data-id');
@@ -2701,14 +2824,7 @@ try {
 	});
 	
 	$('#body').off( "keyup", "#messagetextarea").on( "keyup", "#messagetextarea", function( e ) {
-		/*
-		if (e.which == 13) {
-			e.preventDefault();
-			return(false);
-		}
-		*/
 		e.preventDefault();
-		// console.log('keyup');
 		$('.newmessageform').css({'opacity':'0.9'});
 		var txt = $('#messagetextarea').val();
 		$('#messagetextarea').val(txt.replace(/[\n\r]+/g, ""));
@@ -2716,10 +2832,6 @@ try {
 		$('#page-content').stop().animate({
 		  scrollTop: $("#page-content")[0].scrollHeight
 		}, 1000);
-		
-		// $('#messagetextarea').css({'height':''});
-		// console.log($(this));
-		// console.log($('#messagetextarea').val());
 		checkTextareaValue();
 	});
 	
@@ -2728,57 +2840,26 @@ try {
 		$('.newmessageform').css({'opacity':'0.9'});
 		$('#messagetextarea').css({'max-height':'80px'});
 		checkTextareaValue();
-		// console.log(o);
-		// $('#messagetextarea').height(0);
-		// console.log(e.currentTarget.height());
-		// $('#messagesendbuttondiv').show();
 		$('#page-content').stop().animate({
 		  scrollTop: $("#page-content")[0].scrollHeight
 		}, 1000);
-		// console.log('focussed textarea');
 	});
 	$('#body').off( "blur", "#messagetextarea").on( "blur", "#messagetextarea", function( e ) {
 		e.preventDefault();
 		$('.newmessageform').css({'opacity':'0.7'});
-		// $('#messagetextarea').css({'max-height':'40px'});
 		checkTextareaValue();
-		// hideKeyboard();
-		// $('#messagetextarea').height(40);
-		// $('#messagetextarea').css("height","20px");
-		// $( '#messagetextarea' ).height( 20 );
-		// console.log($('#messagetextarea'));
-		// $('#messagesendbuttondiv').hide();
-		// console.log('blurred textarea');
 	});
-	
-	/*
-	$('#body').off( "keyup", "#messagetextarea").on( "keyup", "#messagetextarea", function( event ) {
-		if (event.keyCode == 13) {
-			event.preventDefault();
-			console.log('keyup');
-			return(false);
-		}
-	});
-	*/
 	
 	$(document).on('click', ".external", function (e) {
 		e.preventDefault();
-		// alert('bla');
 		var targetURL = $(this).attr("href");
 		window.open(targetURL, "_system");
 	});
 
-	// $(window).bind('resize', function() {
-	$(window).resize(function() {
-		// fontResize();
-	});
-	
-	 
 	function checkTopNaviRoles() {
 		 try {
 			$( "#pageOptions li" ).each(function(index, value) {
 				var lirole = $(this).attr('data-roles');
-				// if (lirole == '' || lirole == 'public' || lirole == undefined) { 
 				if (lirole == 'public') { 
 					$(this).css('visibility','visible');
 					$(this).css('display','block');
@@ -3046,7 +3127,7 @@ try {
 	
 	function getOwnerData() {
 		// get owner data and roles
-		$.ajax('http://dominik-lohmann.de:5000/users/?kdnr='+window.system.kdnr,{
+		$.ajax('http://s299455960.online.de:5000/users/?kdnr='+window.system.kdnr,{
 			type:"GET",
 			async: false,
 		}).done(function(result) {
@@ -3061,7 +3142,7 @@ try {
 
 	function getAppOptions() {
 		// get app data and roles
-		$.ajax('http://dominik-lohmann.de:5000/appoptions/',{
+		$.ajax('http://s299455960.online.de:5000/appoptions/',{
 			type:"GET",
 			async: false,
 		}).done(function(result) {
@@ -3073,7 +3154,7 @@ try {
 	/*
 	function checkLogin() {
 		// get owner data and roles
-		$.ajax('http://dominik-lohmann.de:5000/users/?kdnr='+window.system.kdnr,{
+		$.ajax('http://s299455960.online.de:5000/users/?kdnr='+window.system.kdnr,{
 			type:"GET",
 			async: false,
 		}).done(function(result) {
@@ -3210,37 +3291,14 @@ try {
 	}
 
 	function fontResize() {
-		// alert('font-resizing');
-		//Set default resolution and font size
-		// var resolution = 1024;
-		// var height = 1024;
 		var height = $(window).height();
 		var width = $(window).width();
-		
 		var font = 10;
-		//Get window width
-
-		//Set new font size
 		var fullpixel = width*height;
-		// alert(width);
-		// alert(height);
-		// alert(fullpixel);
-		// 150000
 		var factor = (fullpixel/180000);
-		// alert(factor);
 		if (factor<0.8) factor = 0.8;
 		if (factor>1.4) factor = 1.4;
 		var newFont = font * factor;
-		/*
-		$('#body').each(function( index ) {
-			// alert($(this).css('font-size').substr($( this ).css('font-size').len-2,2));
-			if ($(this).css('font-size').substr($( this ).css('font-size').len-2,2)>22 || newFont>22) newFont = 22;
-			// $('body').css('font-size', newFont);
-			$( this ).css('font-size', newFont);
-			// alert($(this).css('font-size'));
-			// alert(newFont);
-		});
-		*/	
 		$('.resizetext').each(function( index, bla ) {
 			// alert($(this).html());
 			var font = $(this).css('font-size').substr($( this ).css('font-size').len-2,2);
@@ -3250,8 +3308,6 @@ try {
 			// alert(newFont);
 			$(this).css("font-size", newFont+"px");
 		});
-		
-		
 	};
 
 	function getTimestamp() {
@@ -3293,6 +3349,34 @@ try {
 				$('#page-content').focus();
 			});
 		}, 1000);
+	}
+	
+	function resizeDynFont() {
+		$( ".dynsizetext" ).each(function(index, value) {
+			// var nowheight = $(this).height();
+			// alert(nowheight);
+			var settedpercentheight = $(this).attr('data-percentheight');
+			if (settedpercentheight==undefined) settedpercentheight=1;
+			var newheight = Math.ceil($(window).height()*(settedpercentheight/100));
+			var settedpercentwidth = $(this).attr('data-percentwidth');
+			if (settedpercentwidth==undefined) settedpercentwidth=1;
+			var newwidth= Math.ceil($(window).width()*(settedpercentwidth/100));
+			$(this).css('height',newheight);
+		});
+	}
+	
+	function resizeDynSpaces() {
+		$( ".dynspace_small" ).each(function(index, value) {
+			// var nowheight = $(this).height();
+			// alert(nowheight);
+			var settedpercentheight = $(this).attr('data-percentheight');
+			if (settedpercentheight==undefined) settedpercentheight=1;
+			var newheight = Math.ceil($(window).height()*(settedpercentheight/100));
+			var settedpercentwidth = $(this).attr('data-percentwidth');
+			if (settedpercentwidth==undefined) settedpercentwidth=1;
+			var newwidth= Math.ceil($(window).width()*(settedpercentwidth/100));
+			$(this).css('height',newheight);
+		});
 	}
 
 	var showDeleteBar = function(status) {

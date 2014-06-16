@@ -8,20 +8,20 @@ define(["jquery", "backbone", "models/VideoModel"],
 	var VideosCollection = Backbone.Collection.extend({
 		initialize: function(models, options) {
 			this.options = options || {};
-			this.bind("error", this.errorHandler);
-			this.bind("success", this.successHandler);
 			_thisCollectionVideos = this;
 			var online = _thisCollectionVideos.online = 1;
 			this._localStorage_videos = new Store('videos');
 			var offlineData = this.offlineData = this._localStorage_videos.findAll();
 			this.localStorage = this._localStorage_videos;
 			if (_thisCollectionVideos.online==1) {
-				// this.url = 'http://dominik-lohmann.de:5000/videos?{"$orderby":"topic"}';
+				// this.url = 'http://s299455960.online.de:5000/videos?{"$orderby":"topic"}';
 				// alert(window.system.aoid);
-				this.url = 'http://dominik-lohmann.de:5000/videos/?deleted=false';
+				this.url = 'http://s299455960.online.de:5000/videos/?deleted=false';
 				// active=true&
-				if (window.me.master!=true) this.url = this.url + "&uploader=" + window.system.aoid;
-				// this.url = 'http://dominik-lohmann.de:5000/videos/d6c9268c49a139bf';
+				// console.log(window.system.master);
+				if(window.system.master!=true) this.url = this.url + "&uploader=" + window.system.aoid;
+				// else (window.system.master==true) this.url = this.url + "&public=true";
+				// this.url = 'http://s299455960.online.de:5000/videos/d6c9268c49a139bf';
 				this.localStorage = null;
 			}
 		},
@@ -43,23 +43,6 @@ define(["jquery", "backbone", "models/VideoModel"],
 		  }
 		},
 		fetch: function(options) {
-			/*
-			if (_thisCollectionVideos.online==1) {
-				dpd.users.me(function(user) {
-					if (user) {
-						// alert(user.roles);
-						_thisCollectionVideos.user = user;
-						// console.log(user.roles);
-					}
-					else {
-						// location.href = "#noaccess";
-						// console.log('you are not logged in');
-					}
-				});
-			}
-			*/
-			// console.log('window.me');
-			// console.log(window.me);
 			_thisCollectionVideos.user = window.me;
 			options || (options = {});
             var data = (options.data || {});
@@ -90,21 +73,6 @@ define(["jquery", "backbone", "models/VideoModel"],
 				}
 			}
 			return(_thisCollectionVideos.models);
-		},
-		errorHandler: function(xhr) {
-			console.log(xhr);
-			if (xhr.status=='404') {
-				if (xhr.responseJSON==undefined) {
-					alert('probably no internet connection');
-				}
-				else {
-					alert('probably request url wrong or not reachable');
-				}
-			}
-		},
-		successHandler: function(xhr) {
-			alert('successHandler');
-			console.log(xhr);
 		}
 	});
 

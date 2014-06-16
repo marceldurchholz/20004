@@ -94,7 +94,7 @@ window._dpd.ajax = sendRequest;
 
   if (!window._dpd) window._dpd = {};
 
-  var root = "http://dominik-lohmann.de:5000";
+  var root = "http://s299455960.online.de:5000";
 
   var consoleLog = (typeof console !== 'undefined') && console.log;
 

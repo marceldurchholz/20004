@@ -15,17 +15,6 @@ define(["jquery", "backbone", "text!templates/sidemenusList.html", "views/Sideme
 				_thisViewMyProfileNested.initialized = window.me;
 				// dpd.users.me(function(me) {
 				
-				if (1==2) dpd.users.me(function(user) {
-				  if (user) {
-					// alert('you are loggedIn');
-					console.log(user);
-					// $('h1').text("Welcome, " + user.username + "!");
-				  } else {
-					// alert('NOT loggedIn');
-					// location.href = "/";
-				  }
-				});
-				
 				dpd('users').get(window.system.uid, function(me, err) {
 				// dpd.users.me(function(me) {
 					if (me) { 
@@ -38,7 +27,7 @@ define(["jquery", "backbone", "text!templates/sidemenusList.html", "views/Sideme
 					// console.log(me);
 					
 					$.ajax({
-						url: "http://dominik-lohmann.de:5000/users",
+						url: "http://s299455960.online.de:5000/users",
 						async: false
 					}).done(function(users) {
 						var logincounts = 0;
@@ -47,11 +36,10 @@ define(["jquery", "backbone", "text!templates/sidemenusList.html", "views/Sideme
 							logincounts += user.logincount;
 						});
 						_thisViewMyProfileNested.me.level = Math.round(3*(window.me.logincount/logincounts),0);
-						// alert(_thisViewMyProfileNested.me.level);
 					});
 					
 					$.ajax({
-						url: "http://dominik-lohmann.de:5000/videos?active=true&deleted=false", /* &public=true */
+						url: "http://s299455960.online.de:5000/videos?active=true&deleted=false", /* &public=true */
 						async: false
 					}).done(function(videos) {
 							_thisViewMyProfileNested.videos = videos;
@@ -83,31 +71,16 @@ define(["jquery", "backbone", "text!templates/sidemenusList.html", "views/Sideme
 							_thisViewMyProfileNested.interests[index] = interest;
 						});
 						
-						// _thisViewMyProfileNested.checkActiveStatus();
-						// console.log(_thisViewMyProfileNested.interests);
-						// alert(_thisViewMyProfileNested.interests.length);
+						var requestUrl = "http://s299455960.online.de:5000/orders/?userid="+window.me.id;
+						$.ajax({
+							url: requestUrl,
+							async: false
+						}).done(function(orders) {
+							_thisViewMyProfileNested.orders = orders;
+						});
+
 						_thisViewMyProfileNested.render();
 					});
-					// alert(_thisViewMyProfileNested.interests.length);
-
-					
-					// console.log(_thisViewMyProfileNested.interests);
-					
-					
-					
-
-					
-					
-					
-					
-					// if (_thisViewMyProfileNested.me.active==false || $("#fullname").val()=='') {
-					/*
-					if ($("#fullname").val()=='') {
-						// doAlert('Bitte vervollständigen Sie Ihr Profil und bestätigen Sie Ihre E-Mail-Adresse über den zugesendeten Link.','Fast fertig...');
-						doAlert('Bitte hinterlegen Sie Ihren Namen zur Freischaltung.','Fast fertig...');
-					}
-					*/
-					
 				});
 
 			},
@@ -292,20 +265,36 @@ define(["jquery", "backbone", "text!templates/sidemenusList.html", "views/Sideme
 					e.preventDefault();
 					// console.log(e.delegateTarget);
 					var iapid = $(this).attr('data-iapid');
-					// console.log("purchasing "+iapid);
-					// window.storekit.purchase("com.digitalverve.APPinaut."+iapid,1);
-					showModal();
-					if (isMobile.any()) { 
+					var iapamount = $(this).attr('data-iapamount');
+					if (isMobile.iPhone() && isPhoneGap()) {
+						// console.log("purchasing "+iapid);
+						// window.storekit.purchase("com.digitalverve.APPinaut."+iapid,1);
 						window.storekit.purchase(iapid,1);
+						// window.storekit.purchase("com.digitalverve.APPinaut.250APP359T9", 1);
+						// window.storekit.purchase("com.digitalverve.APPinaut.250APP359T9");
 					}
 					else {
 						// console.log('window.storekit.purchase not available when not mobile');
-						_thisViewMyProfileNested.initialize();
+						// _thisViewMyProfileNested.initialize();
+						// alert('not iphone doing paypal');
+						// doAlert('APPinaut® Coins können nicht in einem Preview gekauft werden.','Information');
+						var pplink = "";
+						// pplink = "http://www.wikipedia.org";
+						// pplink = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XQM2GLEJK6MEA"; // iapa // 3,59
+						var custom = window.me.id+"_"+iapid; // "mycustomurlvarvalueandsoon";
+						var item_name = getCoinsFromProductId(iapid)+" APPinaut Coins"; // "iapa";
+						var amount = iapamount; // "3.59";
+						var currency_code = "EUR";
+						var business = "appinaut@digitalverve.de";
+						var return_url = "http://www.appinaut.de/iapsuccess/";
+						var cancel_return_url = "http://www.appinaut.de/iapcancel/";
+						var callback_url = "http://www.appinaut.de/iapcallback/";
+						var lc = "DE";
+						pplink = "https://www.paypal.com/cgi-bin/webscr?business="+business+"&cmd=_xclick&currency_code="+currency_code+"&amount="+amount+"&item_name="+item_name+"&return="+return_url+"&cancel_return="+cancel_return_url+"&callback_url="+callback_url+"&no_note=1&cn=APPinaut&lc="+lc+"&custom="+custom;
+						window.open(pplink,'_system','location=yes')
 						hideModal();
-						
 					}
-					// window.storekit.purchase("com.digitalverve.APPinaut.250APP359T9", 1);
-					// window.storekit.purchase("com.digitalverve.APPinaut.250APP359T9");
+					return(false);
 				});
 				
 				this.$el.off('click','#showdeletearea').on('click','#showdeletearea',function(e){
@@ -412,6 +401,7 @@ define(["jquery", "backbone", "text!templates/sidemenusList.html", "views/Sideme
 					, provider: provider
 					, seeker: seeker
 					, appviews: _thisViewMyProfileNested.me.appviews
+					, sales: _thisViewMyProfileNested.orders
 				},{variable: 'user'});
 				// alert(htmlContent);
 				$(this.el).html(htmlContent);
